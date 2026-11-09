@@ -389,6 +389,11 @@ Changes on top of upstream `63b9d44` (`git log 63b9d44..harbor-parity`):
 | Parity pair subset | `dataset/subsets/harbor_parity.json` | No (selects pairs) |
 | This documentation | `README.md` | No |
 
+`git diff --stat 63b9d44..harbor-parity` lists exactly these files: besides this README,
+`src/cooperbench/eval/sandbox.py` (+3), `scripts/harbor_parity_daytona.py`,
+`scripts/harbor_image_digests.json` and `dataset/subsets/harbor_parity.json` (new files). No other
+upstream file is changed.
+
 Command (any machine with Docker and Redis):
 
 ```bash
@@ -407,11 +412,25 @@ pulled once per sandbox) and downloads `logs/<run-name>/`:
 export DAYTONA_API_KEY=... OPENAI_API_KEY=... OPENAI_BASE_URL=...
 python scripts/harbor_parity_daytona.py --run-name <run-name> \
     --pairs dataset/subsets/harbor_parity.json --commit <harbor-parity commit> \
-    --shards <k> --concurrency 3 --cpu 12 --memory 36 --disk 30 --out <dir>
+    --shards <k> --concurrency 1 --cpu 4 --memory 12 --disk 20 --out <dir>
 ```
 
-Each shard is one sandbox (12 CPUs, 36 GB for 3 concurrent pairs: 4 CPUs and 12 GB per pair, as
-on the Harbor side). `--pairs` takes an upstream subset file or a list of
+Each shard is one sandbox that runs its pairs one after another (`--concurrency 1`), with 4 CPUs
+and 12 GB, the per-pair resources of the Harbor side (which gives the `typst` tasks 8 CPUs and
+16 GB). The parity runs used commit `eb271c8`:
+run 1 with `--shards 15` (one pair per sandbox); runs 2 and 3 at the same time with `--shards 8`
+and `--shards 7` and `--max-seconds 21600` (the runner's own polling limit, not a benchmark
+timeout). `--pairs` takes an upstream subset file or a list of
 `{"repo", "task_id", "features"}`. The runner exits non-zero unless every shard's harness exited 0,
 every pair has `result.json` and `eval.json`, and every image carries its pinned digest; the
 logs are downloaded either way.
+
+Results (pass rate in %, 15 pairs, 3 runs per side, `openai/deepseek-v4.1-flash` served as
+`deepseek-v4-1-flash-261017` on both sides):
+
+| Side | Run 1 | Run 2 | Run 3 | Mean ± sample SEM |
+|------|-------|-------|-------|-------------------|
+| Original (this branch) | 66.67 | 60.00 | 40.00 | 55.56 ± 8.01 |
+| Harbor adapter | 53.33 | 46.67 | 66.67 | 55.56 ± 5.88 |
+
+The ranges overlap.
