@@ -29,7 +29,9 @@ from daytona import CreateSandboxFromImageParams, Daytona, Image, Resources
 OWNER_LABEL = {"autoadapter_owner": "hanxu12"}
 SETUP = r"""
 set -e
-(dockerd-entrypoint.sh dockerd > /var/log/dockerd.log 2>&1 &)
+# Docker Hub limits anonymous pulls to 100/hour per egress IP, which the shared Daytona egress hits;
+# pull through Google's public Docker Hub mirror (same digests; dockerd falls back to Docker Hub).
+(dockerd-entrypoint.sh dockerd --registry-mirror=https://mirror.gcr.io > /var/log/dockerd.log 2>&1 &)
 for i in $(seq 1 60); do docker info >/dev/null 2>&1 && break; sleep 2; done
 docker info >/dev/null
 apk add --no-cache python3 git bash redis curl >/dev/null
