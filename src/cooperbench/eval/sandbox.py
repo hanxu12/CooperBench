@@ -449,6 +449,9 @@ def _setup_branches(sb: Sandbox) -> dict:
 cd /workspace/repo
 git config user.email "eval@cooperbench.local"
 git config user.name "CooperBench Eval"
+# Harbor adapter fix: never run the repository's own git hooks while grading (react-hook-form's
+# husky pre-commit runs tsc and rejected the gold patch's commit, which emptied the merged diff).
+git config core.hooksPath /dev/null
 
 # Save base commit SHA
 BASE_SHA=$(git rev-parse HEAD)
