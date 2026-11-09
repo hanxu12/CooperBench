@@ -368,7 +368,11 @@ How the original-side numbers of the Harbor parity experiment are produced.
   litellm >= 1.92, so the lock's 1.81.12 cannot be used there), and `mcp==2.3.0`, because
   litellm 1.108.3 imports `mcp.types.CacheableResult` in `completion()` and the lock's mcp 1.26.0
   does not have it. Same versions on both sides.
-- Pairs: `dataset/subsets/harbor_parity.json`.
+- Pairs: `dataset/subsets/harbor_parity.json`: 15 of the 652 coop pairs, stratified by repository
+  (every one of the 12 repositories gets at least one pair, the rest follow each repository's share
+  of pairs, largest remainder), drawn uniformly within each repository with seed 42. It covers all
+  four languages (Python, Go, TypeScript, Rust). The Harbor adapter's `--split parity` is the same
+  file.
 
 - Images: the harness pulls `akhatua/cooperbench-<repo>:task<id>` by tag. The parity runs check
   after each shard that every pulled image has the digest pinned in
@@ -401,9 +405,13 @@ pulled once per sandbox) and downloads `logs/<run-name>/`:
 
 ```bash
 export DAYTONA_API_KEY=... OPENAI_API_KEY=... OPENAI_BASE_URL=...
-python scripts/harbor_parity_daytona.py --run-name <run-name> --pairs <pairs.json> \
-    --commit <harbor-parity commit> --shards <k> --concurrency 4 --cpu 16 --memory 48 --disk 30 \
-    --out <dir>
+python scripts/harbor_parity_daytona.py --run-name <run-name> \
+    --pairs dataset/subsets/harbor_parity.json --commit <harbor-parity commit> \
+    --shards <k> --concurrency 3 --cpu 12 --memory 36 --disk 30 --out <dir>
 ```
 
-`<pairs.json>` is a list of `{"repo", "task_id", "features"}` (the pairs of `harbor_parity.json`).
+Each shard is one sandbox (12 CPUs, 36 GB for 3 concurrent pairs: 4 CPUs and 12 GB per pair, as
+on the Harbor side). `--pairs` takes an upstream subset file or a list of
+`{"repo", "task_id", "features"}`. The runner exits non-zero unless every shard's harness exited 0,
+every pair has `result.json` and `eval.json`, and every image carries its pinned digest; the
+logs are downloaded either way.

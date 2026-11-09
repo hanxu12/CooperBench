@@ -8,7 +8,11 @@ tarball; the sandbox is deleted.
 Keys (OPENAI_API_KEY, OPENAI_BASE_URL) are read from this process's environment and handed to the
 sandbox through the SDK's env_vars; they are never printed or written to a file.
 
-    python orig_runner.py --run-name NAME --pairs pairs.json --shards 4 --concurrency 6 --out DIR
+    python orig_runner.py --run-name NAME --pairs dataset/subsets/harbor_parity.json --commit SHA \
+        --shards 5 --concurrency 3 --cpu 12 --memory 36 --disk 30 --out DIR
+
+The run exits non-zero unless every shard's harness exited 0, every pair has a result and an
+evaluation, and every image carries its pinned digest.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ import io
 import json
 import os
 import shlex
+import sys
 import tarfile
 import threading
 import time
@@ -50,6 +55,19 @@ echo SETUP_OK
 """
 
 
+def load_pairs(path: Path) -> list[dict]:
+    """A list of {"repo", "task_id", "features"}, or an upstream subset file
+    (dataset/subsets/<name>.json: {"tasks": [{"repo", "task_id", "pairs"}]})."""
+    data = json.loads(path.read_text())
+    if isinstance(data, dict):
+        return [
+            {"repo": t["repo"], "task_id": t["task_id"], "features": list(fp)}
+            for t in data["tasks"]
+            for fp in t["pairs"]
+        ]
+    return data
+
+
 def shard_pairs(pairs: list[dict], n: int) -> list[list[dict]]:
     """Group by (repo, task_id) so each image is pulled in one sandbox; balance pair counts."""
     groups: dict[tuple, list[dict]] = {}
@@ -69,10 +87,7 @@ def subset_json(name: str, pairs: list[dict]) -> str:
         {
             "name": name,
             "description": "harbor parity shard",
-            "tasks": [
-                {"repo": r, "task_id": t, "pairs": ps}
-                for (r, t), ps in sorted(tasks.items())
-            ],
+            "tasks": [{"repo": r, "task_id": t, "pairs": ps} for (r, t), ps in sorted(tasks.items())],
         },
         indent=1,
     )
@@ -85,14 +100,8 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
 
     d = Daytona()
     labels = {**OWNER_LABEL, "autoadapter_job": args.run_name}
-    env_vars = {
-        k_: os.environ[k_]
-        for k_ in ("OPENAI_API_KEY", "OPENAI_BASE_URL")
-        if k_ in os.environ
-    }
-    env_vars.update(
-        {"MSWEA_COST_TRACKING": "ignore_errors"} if args.ignore_cost else {}
-    )
+    env_vars = {k_: os.environ[k_] for k_ in ("OPENAI_API_KEY", "OPENAI_BASE_URL") if k_ in os.environ}
+    env_vars.update({"MSWEA_COST_TRACKING": "ignore_errors"} if args.ignore_cost else {})
     sb = d.create(
         CreateSandboxFromImageParams(
             image=Image.base("docker:28.3.3-dind"),
@@ -107,9 +116,7 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
         on_snapshot_create_logs=lambda s: None,
     )
     try:
-        checkout = (
-            f"git checkout --quiet {shlex.quote(args.commit)}" if args.commit else ""
-        )
+        checkout = f"git checkout --quiet {shlex.quote(args.commit)}" if args.commit else ""
         setup = SETUP.format(
             branch=args.branch,
             repo_url=args.repo_url,
@@ -119,9 +126,7 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
         r = sb.process.exec(f"sh -c {shlex.quote(setup)}", timeout=3600)
         log(f"setup rc={r.exit_code}: {r.result.strip()[-400:]}")
         if "SETUP_OK" not in r.result:
-            r2 = sb.process.exec(
-                "tail -30 /root/uv-sync.log /root/uv-pins.log", timeout=60
-            )
+            r2 = sb.process.exec("tail -30 /root/uv-sync.log /root/uv-pins.log", timeout=60)
             raise RuntimeError(f"setup failed: {r2.result[-2000:]}")
         sub = f"{args.run_name.replace('-', '_')}_s{k}"
         enc = base64.b64encode(subset_json(sub, pairs).encode()).decode()
@@ -136,14 +141,12 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
             f"-n {args.run_name}; echo $? > /root/done"
         )
         sb.process.exec(
-            "sh -c "
-            + shlex.quote(
-                "nohup sh -c " + shlex.quote(cmd) + " > /root/run.log 2>&1 &"
-            ),
+            "sh -c " + shlex.quote("nohup sh -c " + shlex.quote(cmd) + " > /root/run.log 2>&1 &"),
             timeout=60,
         )
         t0 = time.time()
         last = ""
+        done = ""
         while True:
             time.sleep(60)
             base = f"/root/CooperBench/logs/{args.run_name}/coop"
@@ -166,6 +169,7 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
                 break
             if time.time() - t0 > args.max_seconds:
                 log("max time reached; collecting what exists")
+                done = "timeout"
                 break
         # The harness pulls images by tag; check that each one is the pinned digest.
         pinned = json.loads(args.digests.read_text())
@@ -184,8 +188,7 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
             }
         bad = [k_ for k_, v in check.items() if not v["ok"]]
         log(
-            f"image digests: {len(check) - len(bad)}/{len(check)} match the pins"
-            + (f"; MISMATCH {bad}" if bad else "")
+            f"image digests: {len(check) - len(bad)}/{len(check)} match the pins" + (f"; MISMATCH {bad}" if bad else "")
         )
         sb.process.exec(
             f"sh -c 'mkdir -p /root/CooperBench/logs/{args.run_name} && cp /root/run.log /root/CooperBench/logs/{args.run_name}/run.log; "
@@ -199,9 +202,21 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
             tf.extractall(shard_dir, filter="data")
         (shard_dir / "pairs.json").write_text(json.dumps(pairs, indent=1))
         (shard_dir / "image_digests_check.json").write_text(json.dumps(check, indent=1))
-        if bad:
-            raise RuntimeError(f"images differ from the pinned digests: {bad}")
         log(f"downloaded to {shard_dir}")
+        # A shard succeeds only if the harness exited 0, every pair has a result and an
+        # evaluation, and every image is the pinned one. Logs are downloaded either way.
+        logs = shard_dir / "logs" / args.run_name / "coop"
+        n_res = len(list(logs.glob("*/*/*/result.json")))
+        n_eval = len(list(logs.glob("*/*/*/eval.json")))
+        problems = []
+        if done != "0":
+            problems.append(f"harness exit status {done!r}")
+        if n_res < len(pairs) or n_eval < len(pairs):
+            problems.append(f"incomplete: {n_res} results, {n_eval} evals for {len(pairs)} pairs")
+        if bad:
+            problems.append(f"images differ from the pinned digests: {bad}")
+        if problems:
+            raise RuntimeError("; ".join(problems))
     finally:
         d.delete(sb)
         log("sandbox deleted")
@@ -220,9 +235,7 @@ def main() -> None:
     ap.add_argument("--model", default="openai/deepseek-v4.1-flash")
     ap.add_argument("--repo-url", default="https://github.com/hanxu12/CooperBench.git")
     ap.add_argument("--branch", default="harbor-parity")
-    ap.add_argument(
-        "--commit", default=None, help="exact fork commit to check out (recommended)"
-    )
+    ap.add_argument("--commit", default=None, help="exact fork commit to check out (recommended)")
     ap.add_argument(
         "--digests",
         type=Path,
@@ -234,20 +247,32 @@ def main() -> None:
     ap.add_argument("--max-seconds", type=int, default=4 * 3600)
     args = ap.parse_args()
 
-    pairs = json.loads(args.pairs.read_text())
+    pairs = load_pairs(args.pairs)
     shards = shard_pairs(pairs, args.shards)
     args.out.mkdir(parents=True, exist_ok=True)
     lock = threading.Lock()
+    failures: dict[int, str] = {}
+
+    def shard(k: int, sp: list[dict]) -> None:
+        try:
+            run_shard(args, k, sp, args.out, lock)
+        except Exception as e:  # noqa: BLE001 - reported below, the run then fails
+            with lock:
+                failures[k] = f"{type(e).__name__}: {e}"
+                print(f"[shard {k}] FAILED {failures[k]}", flush=True)
+
     threads = []
     for k, sp in enumerate(shards):
-        t = threading.Thread(
-            target=run_shard, args=(args, k, sp, args.out, lock), daemon=False
-        )
+        t = threading.Thread(target=shard, args=(k, sp), daemon=False)
         t.start()
         threads.append(t)
         time.sleep(5)
     for t in threads:
         t.join()
+    if failures:
+        print(f"{len(failures)}/{len(shards)} shards failed: {failures}", flush=True)
+        sys.exit(1)
+    print(f"all {len(shards)} shards completed", flush=True)
 
 
 if __name__ == "__main__":

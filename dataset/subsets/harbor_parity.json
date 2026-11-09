@@ -1,0 +1,161 @@
+{
+  "name": "harbor_parity",
+  "description": "15-pair parity subset for the Harbor adapter: stratified by repository (>=1 per repo, rest proportional to pair count), uniform within repo, seed=42",
+  "stats": {
+    "tasks": 15,
+    "pairs": 15,
+    "repos": 12
+  },
+  "tasks": [
+    {
+      "repo": "dottxt_ai_outlines_task",
+      "task_id": 1371,
+      "pairs": [
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "repo": "dottxt_ai_outlines_task",
+      "task_id": 1655,
+      "pairs": [
+        [
+          1,
+          10
+        ]
+      ]
+    },
+    {
+      "repo": "dspy_task",
+      "task_id": 8635,
+      "pairs": [
+        [
+          2,
+          5
+        ]
+      ]
+    },
+    {
+      "repo": "go_chi_task",
+      "task_id": 27,
+      "pairs": [
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "repo": "huggingface_datasets_task",
+      "task_id": 3997,
+      "pairs": [
+        [
+          3,
+          4
+        ]
+      ]
+    },
+    {
+      "repo": "llama_index_task",
+      "task_id": 17244,
+      "pairs": [
+        [
+          3,
+          4
+        ]
+      ]
+    },
+    {
+      "repo": "openai_tiktoken_task",
+      "task_id": 0,
+      "pairs": [
+        [
+          1,
+          10
+        ]
+      ]
+    },
+    {
+      "repo": "pallets_click_task",
+      "task_id": 2068,
+      "pairs": [
+        [
+          2,
+          5
+        ]
+      ]
+    },
+    {
+      "repo": "pallets_click_task",
+      "task_id": 2956,
+      "pairs": [
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "repo": "pallets_jinja_task",
+      "task_id": 1465,
+      "pairs": [
+        [
+          3,
+          9
+        ]
+      ]
+    },
+    {
+      "repo": "pallets_jinja_task",
+      "task_id": 1621,
+      "pairs": [
+        [
+          3,
+          5
+        ]
+      ]
+    },
+    {
+      "repo": "pillow_task",
+      "task_id": 25,
+      "pairs": [
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "repo": "react_hook_form_task",
+      "task_id": 85,
+      "pairs": [
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "repo": "samuelcolvin_dirty_equals_task",
+      "task_id": 43,
+      "pairs": [
+        [
+          1,
+          7
+        ]
+      ]
+    },
+    {
+      "repo": "typst_task",
+      "task_id": 6554,
+      "pairs": [
+        [
+          2,
+          7
+        ]
+      ]
+    }
+  ]
+}
