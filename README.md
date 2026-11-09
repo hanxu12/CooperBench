@@ -3,7 +3,8 @@
 > **Branch `harbor-parity`** — the original side of the parity experiment for the Harbor adapter
 > `cooperbench-autoadapter`. It is upstream `main` at `63b9d44` plus this note,
 > `scripts/harbor_parity_daytona.py` and the parity subset `dataset/subsets/harbor_parity.json`.
-> No benchmark code, prompt or grading logic is changed. See [Harbor parity](#harbor-parity) below.
+> Prompts and agents are unchanged. One evaluator bug fix (git hooks, below) is applied here and in
+> the Harbor adapter alike. See [Harbor parity](#harbor-parity) below.
 
 
 [![arXiv](https://img.shields.io/badge/arXiv-2601.13295-b31b1b.svg)](https://arxiv.org/abs/2601.13295)
@@ -353,7 +354,12 @@ MIT
 
 How the original-side numbers of the Harbor parity experiment are produced.
 
-- Code: this branch (upstream `main` at `63b9d44d9f39a02fccf5bf0052db48a917a011fd`, unchanged).
+- Code: this branch = upstream `main` at `63b9d44d9f39a02fccf5bf0052db48a917a011fd` plus one evaluator
+  fix: `_setup_branches` (`src/cooperbench/eval/sandbox.py`) sets `core.hooksPath=/dev/null` before
+  committing the agents' patches. Without it, react-hook-form's husky pre-commit hook (`pnpm type` =
+  `tsc --noEmit`, then lint-staged) runs inside the evaluator; for `react_hook_form_task/task85` the
+  gold `combined.patch` fails `tsc`, the commit is rejected, the merged diff is empty and every pair
+  scores 0 even for the reference solution. The Harbor adapter applies the same line.
 - Setting: `coop`, agent `mini_swe_agent_v2` with its default `coop.yaml`, messaging on, git off,
   `--backend docker`, auto-evaluation on (all upstream defaults).
 - Model: `openai/deepseek-v4.1-flash` through an OpenAI-compatible endpoint
