@@ -1,0 +1,152 @@
+{
+  "dottxt_ai_outlines_task/task1371": {
+    "image": "akhatua/cooperbench-dottxt-ai-outlines:task1371",
+    "digest": "sha256:a34d58e7b378cc84c29c6f624c16122cd32b7668fbb6feb56f0654627d21eb23",
+    "compressed_bytes_amd64": 4554300530
+  },
+  "dottxt_ai_outlines_task/task1655": {
+    "image": "akhatua/cooperbench-dottxt-ai-outlines:task1655",
+    "digest": "sha256:f12f5894b839f9f1bf2e4d2dadfa88331ab6b6e5e2dc1b72c206b4c79ff5d761",
+    "compressed_bytes_amd64": 4190125709
+  },
+  "dottxt_ai_outlines_task/task1706": {
+    "image": "akhatua/cooperbench-dottxt-ai-outlines:task1706",
+    "digest": "sha256:555f2d03619d5041bc6d66b18da62aff3785b8599b988c0dc05905560900edb4",
+    "compressed_bytes_amd64": 3630890301
+  },
+  "dspy_task/task8394": {
+    "image": "akhatua/cooperbench-dspy:task8394",
+    "digest": "sha256:279e1ba7b11fdf418b1519104f6a00a9b0b0cbcfd48b1d509896b4b8d6112f46",
+    "compressed_bytes_amd64": 1015221782
+  },
+  "dspy_task/task8563": {
+    "image": "akhatua/cooperbench-dspy:task8563",
+    "digest": "sha256:489c5286568a20913d0aafd9c038aebcddbebdcb4ba193dc47b6c51d895d2514",
+    "compressed_bytes_amd64": 1015257727
+  },
+  "dspy_task/task8587": {
+    "image": "akhatua/cooperbench-dspy:task8587",
+    "digest": "sha256:8c6774261fed43ebe5f94216e030758defaa91e0c9bb269a275eaecf517d2c2c",
+    "compressed_bytes_amd64": 1015257713
+  },
+  "dspy_task/task8635": {
+    "image": "akhatua/cooperbench-dspy:task8635",
+    "digest": "sha256:3e22abf616801e51102a0533876ebbee468d5f5167cd2b3f5bf365261cd1b850",
+    "compressed_bytes_amd64": 877288015
+  },
+  "go_chi_task/task26": {
+    "image": "akhatua/cooperbench-go-chi:task26",
+    "digest": "sha256:82493162967558e99c6fe470323856d7902f32ac5f01852c9f74ca9d73e29f74",
+    "compressed_bytes_amd64": 106006992
+  },
+  "go_chi_task/task27": {
+    "image": "akhatua/cooperbench-go-chi:task27",
+    "digest": "sha256:ad15fb7672d97d19b9998af32ef2753b33339548c2686958767ec0547f4211c0",
+    "compressed_bytes_amd64": 103995085
+  },
+  "go_chi_task/task56": {
+    "image": "akhatua/cooperbench-go-chi:task56",
+    "digest": "sha256:ccd295ebdde0c92c38da03bbf87e9e20dbef12e448122c7f7d65e0d8606b38b0",
+    "compressed_bytes_amd64": 103993901
+  },
+  "huggingface_datasets_task/task3997": {
+    "image": "akhatua/cooperbench-huggingface-datasets:task3997",
+    "digest": "sha256:2e013c5193ea3215b8fabaab34102ecbe49937412caccb340c39173c637890eb",
+    "compressed_bytes_amd64": 644627584
+  },
+  "huggingface_datasets_task/task6252": {
+    "image": "akhatua/cooperbench-huggingface-datasets:task6252",
+    "digest": "sha256:748d8af590e5450b6d8de0a9f6bc029482bfbe42020fa80ac14e4d877deba642",
+    "compressed_bytes_amd64": 4107991894
+  },
+  "huggingface_datasets_task/task7309": {
+    "image": "akhatua/cooperbench-huggingface-datasets:task7309",
+    "digest": "sha256:d7215907ad06a0f5141c19a2b2abf6de9b8cbd3d6844e18cd312372df7537f3c",
+    "compressed_bytes_amd64": 5447200029
+  },
+  "llama_index_task/task17070": {
+    "image": "akhatua/cooperbench-llama-index:task17070",
+    "digest": "sha256:0ef4ef998a82e3a8895da9f8234324ec38a1a4a6e4f271f3e4c15981fcd00b77",
+    "compressed_bytes_amd64": 847340201
+  },
+  "llama_index_task/task17244": {
+    "image": "akhatua/cooperbench-llama-index:task17244",
+    "digest": "sha256:0bb568e914ce6539501356c05a8f50ee5000e2bbecb84607edd604b3a7c1c0fc",
+    "compressed_bytes_amd64": 809854575
+  },
+  "llama_index_task/task18813": {
+    "image": "akhatua/cooperbench-llama-index:task18813",
+    "digest": "sha256:1031f8c7436731b531b054876ffb3fa93d7e4ef01dbdc49d7cb16e893355508a",
+    "compressed_bytes_amd64": 1046942718
+  },
+  "openai_tiktoken_task/task0": {
+    "image": "akhatua/cooperbench-openai-tiktoken:task0",
+    "digest": "sha256:0c732fb66cef8fd0ddf107c31c0419f4f64f08b33f81ab95c372cde666664797",
+    "compressed_bytes_amd64": 562479126
+  },
+  "pallets_click_task/task2068": {
+    "image": "akhatua/cooperbench-pallets-click:task2068",
+    "digest": "sha256:2116cc975812211cdae8b97f63069c666b7fffc490ce0d329f8853e241342386",
+    "compressed_bytes_amd64": 260775878
+  },
+  "pallets_click_task/task2800": {
+    "image": "akhatua/cooperbench-pallets-click:task2800",
+    "digest": "sha256:a80b15460f97844a8ac36cadeed51b21fcb68a726e3992374cc9d997fe397260",
+    "compressed_bytes_amd64": 255233960
+  },
+  "pallets_click_task/task2956": {
+    "image": "akhatua/cooperbench-pallets-click:task2956",
+    "digest": "sha256:497bb01824e4f2bc5a53db80446a61f3edaca5b5e4e5bf3100d423b11e11eb9a",
+    "compressed_bytes_amd64": 260801169
+  },
+  "pallets_jinja_task/task1465": {
+    "image": "akhatua/cooperbench-pallets-jinja:task1465",
+    "digest": "sha256:c8c7802ed974eb11dff1692f2de9e58b75f01c7128a54bd258a157beb4714f7b",
+    "compressed_bytes_amd64": 263443467
+  },
+  "pallets_jinja_task/task1559": {
+    "image": "akhatua/cooperbench-pallets-jinja:task1559",
+    "digest": "sha256:0dd982105dc8afbbee465f50796540002546c0764ca1166ff82ee015af8e58e2",
+    "compressed_bytes_amd64": 257519235
+  },
+  "pallets_jinja_task/task1621": {
+    "image": "akhatua/cooperbench-pallets-jinja:task1621",
+    "digest": "sha256:b51b95853994225afb5050ab32439561032b0e2f69c2fddea779fcd88f33da5c",
+    "compressed_bytes_amd64": 257520098
+  },
+  "pillow_task/task25": {
+    "image": "akhatua/cooperbench-pillow:task25",
+    "digest": "sha256:1c7399a4e8e7d08ef361b1288b8c232b4855deaf92f3da5336ce453717036d7e",
+    "compressed_bytes_amd64": 534923055
+  },
+  "pillow_task/task290": {
+    "image": "akhatua/cooperbench-pillow:task290",
+    "digest": "sha256:d0272897ea8f11583b032c8edbc08dab28fdac73782b431cffe29edb26ef82b7",
+    "compressed_bytes_amd64": 537203377
+  },
+  "pillow_task/task68": {
+    "image": "akhatua/cooperbench-pillow:task68",
+    "digest": "sha256:a4f5e51e93bba189a4ce173dc32267b6a006729b41c9c0a7c87cf98ac43ace0f",
+    "compressed_bytes_amd64": 534574706
+  },
+  "react_hook_form_task/task153": {
+    "image": "akhatua/cooperbench-react-hook-form:task153",
+    "digest": "sha256:a11a5799f5ed824085ee910d5f2fdacb1589bc8c0e9e6ea7a7673c85e26fa29a",
+    "compressed_bytes_amd64": 664558977
+  },
+  "react_hook_form_task/task85": {
+    "image": "akhatua/cooperbench-react-hook-form:task85",
+    "digest": "sha256:3f391d331f1e5dd46a0eb77fdea9eec276959f22a5dce675c1d7356189b1e219",
+    "compressed_bytes_amd64": 477638983
+  },
+  "samuelcolvin_dirty_equals_task/task43": {
+    "image": "akhatua/cooperbench-samuelcolvin-dirty-equals:task43",
+    "digest": "sha256:c0d0ab8de32ec280797c0043d29c2904389b786cb8ad9f44fbf7b79032d68926",
+    "compressed_bytes_amd64": 257579388
+  },
+  "typst_task/task6554": {
+    "image": "akhatua/cooperbench-typst:task6554",
+    "digest": "sha256:baf99463d8a49ee22bc268c1b07c224283ef9c89a8388dc9b834772c0dd197a7",
+    "compressed_bytes_amd64": 2318273941
+  }
+}

@@ -370,15 +370,40 @@ How the original-side numbers of the Harbor parity experiment are produced.
   does not have it. Same versions on both sides.
 - Pairs: `dataset/subsets/harbor_parity.json`.
 
+- Images: the harness pulls `akhatua/cooperbench-<repo>:task<id>` by tag. The parity runs check
+  after each shard that every pulled image has the digest pinned in
+  `scripts/harbor_image_digests.json` (the same pins as the Harbor adapter's `image_digests.json`).
+  dockerd uses `--registry-mirror=https://mirror.gcr.io` (Google's Docker Hub mirror, same digests)
+  because Docker Hub's anonymous limit (100 pulls/hour per IP) is hit on shared cloud egress.
+
+Changes on top of upstream `63b9d44` (`git log 63b9d44..harbor-parity`):
+
+| Change | Files | Affects scoring |
+|---|---|---|
+| Evaluator: `git config core.hooksPath /dev/null` before committing patches | `src/cooperbench/eval/sandbox.py` (+3 lines) | Only where a repo's hooks reject the commit (react_hook_form task85: the gold patch scored 0) |
+| Parity runner for Daytona | `scripts/harbor_parity_daytona.py`, `scripts/harbor_image_digests.json` | No |
+| Parity pair subset | `dataset/subsets/harbor_parity.json` | No (selects pairs) |
+| This documentation | `README.md` | No |
+
 Command (any machine with Docker and Redis):
 
 ```bash
 uv sync --frozen && uv pip install litellm==1.108.3 mcp==2.3.0
 redis-server --daemonize yes
-uv run cooperbench run --setting coop -a mini_swe_agent_v2 -m openai/deepseek-v4.1-flash \
-    --subset harbor_parity --backend docker -n <run-name>
+# --no-sync keeps the two pins (a plain `uv run` would sync back to the lock file)
+uv run --frozen --no-sync cooperbench run --setting coop -a mini_swe_agent_v2 \
+    -m openai/deepseek-v4.1-flash --subset harbor_parity --backend docker -n <run-name>
 ```
 
-The parity runs used `scripts/harbor_parity_daytona.py`, which does the same inside Daytona
-sandboxes from `docker:28.3.3-dind` (dockerd + redis-server per sandbox, pairs sharded by task so
-each image is pulled once per sandbox) and downloads `logs/<run-name>/`.
+The parity runs used the runner, which does the same inside Daytona sandboxes from
+`docker:28.3.3-dind` (dockerd + redis-server per sandbox, pairs sharded by task so each image is
+pulled once per sandbox) and downloads `logs/<run-name>/`:
+
+```bash
+export DAYTONA_API_KEY=... OPENAI_API_KEY=... OPENAI_BASE_URL=...
+python scripts/harbor_parity_daytona.py --run-name <run-name> --pairs <pairs.json> \
+    --commit <harbor-parity commit> --shards <k> --concurrency 4 --cpu 16 --memory 48 --disk 30 \
+    --out <dir>
+```
+
+`<pairs.json>` is a list of `{"repo", "task_id", "features"}` (the pairs of `harbor_parity.json`).
