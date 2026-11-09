@@ -358,14 +358,16 @@ How the original-side numbers of the Harbor parity experiment are produced.
   `--backend docker`, auto-evaluation on (all upstream defaults).
 - Model: `openai/deepseek-v4.1-flash` through an OpenAI-compatible endpoint
   (`OPENAI_API_KEY`, `OPENAI_BASE_URL`).
-- One dependency pin: `litellm==1.108.3`, the version the Harbor side runs (Harbor 0.25.0 needs
-  litellm >= 1.92, so the lock's 1.81.12 cannot be used there). Same version on both sides.
+- Two dependency pins: `litellm==1.108.3`, the version the Harbor side runs (Harbor 0.25.0 needs
+  litellm >= 1.92, so the lock's 1.81.12 cannot be used there), and `mcp==2.3.0`, because
+  litellm 1.108.3 imports `mcp.types.CacheableResult` in `completion()` and the lock's mcp 1.26.0
+  does not have it. Same versions on both sides.
 - Pairs: `dataset/subsets/harbor_parity.json`.
 
 Command (any machine with Docker and Redis):
 
 ```bash
-uv sync --frozen && uv pip install litellm==1.108.3
+uv sync --frozen && uv pip install litellm==1.108.3 mcp==2.3.0
 redis-server --daemonize yes
 uv run cooperbench run --setting coop -a mini_swe_agent_v2 -m openai/deepseek-v4.1-flash \
     --subset harbor_parity --backend docker -n <run-name>

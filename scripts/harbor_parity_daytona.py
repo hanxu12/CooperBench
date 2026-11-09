@@ -115,14 +115,17 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
         last = ""
         while True:
             time.sleep(60)
-            r = sb.process.exec(
-                "sh -c 'cat /root/done 2>/dev/null; echo; "
-                f"ls /root/CooperBench/logs/{args.run_name}/coop/*/*/*/result.json 2>/dev/null | wc -l; "
-                f"ls /root/CooperBench/logs/{args.run_name}/coop/*/*/*/eval.json 2>/dev/null | wc -l'",
-                timeout=120,
+            base = f"/root/CooperBench/logs/{args.run_name}/coop"
+            probe = (
+                f'printf "%s|%s|%s" "$(cat /root/done 2>/dev/null)" '
+                f'"$(ls {base}/*/*/*/result.json 2>/dev/null | wc -l)" "$(ls {base}/*/*/*/eval.json 2>/dev/null | wc -l)"'
             )
-            parts = r.result.split("\n")
-            done, n_res, n_eval = parts[0].strip(), parts[1].strip(), parts[2].strip() if len(parts) > 2 else "?"
+            try:
+                r = sb.process.exec("sh -c " + shlex.quote(probe), timeout=120)
+                done, n_res, n_eval = (r.result.strip().split("|") + ["", "", ""])[:3]
+            except Exception as e:  # transient API error: keep polling
+                log(f"poll error: {e}")
+                continue
             status = f"results={n_res}/{len(pairs)} evals={n_eval} elapsed={int(time.time() - t0)}s"
             if status.split(" elapsed")[0] != last:
                 log(status)
@@ -134,7 +137,8 @@ def run_shard(args, k: int, pairs: list[dict], out: Path, lock: threading.Lock) 
                 log("max time reached; collecting what exists")
                 break
         sb.process.exec(
-            f"sh -c 'cd /root/CooperBench && tar czf /root/out.tgz logs/{args.run_name} -C /root run.log 2>/dev/null; true'",
+            f"sh -c 'mkdir -p /root/CooperBench/logs/{args.run_name} && cp /root/run.log /root/CooperBench/logs/{args.run_name}/run.log; "
+            f"cd /root/CooperBench && tar czf /root/out.tgz logs/{args.run_name}'",
             timeout=600,
         )
         data = sb.fs.download_file("/root/out.tgz")
@@ -162,7 +166,7 @@ def main() -> None:
     ap.add_argument("--model", default="openai/deepseek-v4.1-flash")
     ap.add_argument("--repo-url", default="https://github.com/hanxu12/CooperBench.git")
     ap.add_argument("--branch", default="harbor-parity")
-    ap.add_argument("--pins", default="litellm==1.108.3")
+    ap.add_argument("--pins", default="litellm==1.108.3 mcp==2.3.0")
     ap.add_argument("--ignore-cost", action="store_true")
     ap.add_argument("--max-seconds", type=int, default=4 * 3600)
     args = ap.parse_args()
