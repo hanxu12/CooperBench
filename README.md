@@ -1,5 +1,11 @@
 # CooperBench
 
+> **Branch `harbor-parity`** — the original side of the parity experiment for the Harbor adapter
+> `cooperbench-autoadapter`. It is upstream `main` at `63b9d44` plus this note,
+> `scripts/harbor_parity_daytona.py` and the parity subset `dataset/subsets/harbor_parity.json`.
+> No benchmark code, prompt or grading logic is changed. See [Harbor parity](#harbor-parity) below.
+
+
 [![arXiv](https://img.shields.io/badge/arXiv-2601.13295-b31b1b.svg)](https://arxiv.org/abs/2601.13295)
 [![Website](https://img.shields.io/badge/Website-cooperbench.com-blue.svg)](https://cooperbench.com)
 [![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-yellow.svg)](https://huggingface.co/datasets/CodeConflict/cooperbench-dataset)
@@ -341,3 +347,30 @@ mypy src/cooperbench/
 ## License
 
 MIT
+
+
+## Harbor parity
+
+How the original-side numbers of the Harbor parity experiment are produced.
+
+- Code: this branch (upstream `main` at `63b9d44d9f39a02fccf5bf0052db48a917a011fd`, unchanged).
+- Setting: `coop`, agent `mini_swe_agent_v2` with its default `coop.yaml`, messaging on, git off,
+  `--backend docker`, auto-evaluation on (all upstream defaults).
+- Model: `openai/deepseek-v4.1-flash` through an OpenAI-compatible endpoint
+  (`OPENAI_API_KEY`, `OPENAI_BASE_URL`).
+- One dependency pin: `litellm==1.108.3`, the version the Harbor side runs (Harbor 0.25.0 needs
+  litellm >= 1.92, so the lock's 1.81.12 cannot be used there). Same version on both sides.
+- Pairs: `dataset/subsets/harbor_parity.json`.
+
+Command (any machine with Docker and Redis):
+
+```bash
+uv sync --frozen && uv pip install litellm==1.108.3
+redis-server --daemonize yes
+uv run cooperbench run --setting coop -a mini_swe_agent_v2 -m openai/deepseek-v4.1-flash \
+    --subset harbor_parity --backend docker -n <run-name>
+```
+
+The parity runs used `scripts/harbor_parity_daytona.py`, which does the same inside Daytona
+sandboxes from `docker:28.3.3-dind` (dockerd + redis-server per sandbox, pairs sharded by task so
+each image is pulled once per sandbox) and downloads `logs/<run-name>/`.
